@@ -18,7 +18,7 @@ import { useHistory } from "react-router-dom";
 
 import some from "lodash/some";
 import capitalize from "lodash/capitalize";
-import random from "lodash/random";
+// import random from "lodash/random";
 import debounce from "lodash/debounce";
 
 import { AnimateSharedLayout } from "framer-motion";
@@ -197,9 +197,9 @@ const minimax = function (depth, game, alpha, beta, isMaximisingPlayer) {
   }
 
   var newGameMoves = game.allMoves;
-
+  var bestMove;
   if (isMaximisingPlayer) {
-    var bestMove = -9999;
+    bestMove = -9999;
     for (var i = 0; i < newGameMoves.length; i++) {
       const { position, move } = game.allMoves[i];
       const nextChessBoard = {
@@ -217,12 +217,12 @@ const minimax = function (depth, game, alpha, beta, isMaximisingPlayer) {
     }
     return bestMove;
   } else {
-    var bestMove = 9999;
-    for (var i = 0; i < newGameMoves.length; i++) {
-      const { position, move } = game.allMoves[i];
+    bestMove = 9999;
+    for (var j = 0; j < newGameMoves.length; j++) {
+      const { position, move } = game.allMoves[j];
       const nextChessBoard = {
         chessBoard: getNextChessBoard(position, move, game.chessBoard),
-        allMoves: game.allMoves[i],
+        allMoves: game.allMoves[j],
       };
       bestMove = Math.min(
         bestMove,
@@ -308,7 +308,7 @@ function ChessBoard(props) {
 
   const moves = useMemo(
     () => getMoves(selectedPosition, chessBoard),
-    [selectedPosition]
+    [selectedPosition,chessBoard]
   );
 
   console.log(moves);
@@ -381,7 +381,7 @@ function ChessBoard(props) {
 
     // do a computer move if it is a computer round
     isComputerRound && doComputerMove();
-  }, [chessBoard, windowIsFocused]);
+  }, [chessBoard, windowIsFocused, chessBoardHistory,chessBoardType,doComputerMove,enemyColor,isComputerRound,playerColor]);
 
   function handleClick({ position, clientCoords }) {
     if (clientCoords) {
