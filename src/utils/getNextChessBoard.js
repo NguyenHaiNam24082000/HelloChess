@@ -10,9 +10,8 @@ export default function getNextChessBoard(lastPosition, newPosition, chessBoard)
   const { y: newY, x: newX } = newPosition;
 
   const nextChessBoard = cloneDeep(chessBoard);
-
   const selectedPiece = nextChessBoard[lastY][lastX];
-
+  // if(selectedPiece===null) return nextChessBoard;
   nextChessBoard[newY][newX] = cloneDeep(
     {
       ...selectedPiece,

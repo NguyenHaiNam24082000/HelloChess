@@ -7,6 +7,7 @@ import React, {
 } from "react";
 
 import { makeStyles } from "@material-ui/core/styles";
+// import { createTheme } from '@material-ui/core/styles'
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
@@ -18,7 +19,7 @@ import { useHistory } from "react-router-dom";
 
 import some from "lodash/some";
 import capitalize from "lodash/capitalize";
-// import random from "lodash/random";
+import random from "lodash/random";
 import debounce from "lodash/debounce";
 
 import { AnimateSharedLayout } from "framer-motion";
@@ -150,35 +151,29 @@ const getPieceValue = (piece, x, y) => {
     return 0;
   }
   const getAbsoluteValue = (piece, isWhite, x, y) => {
+    // console.log("aaa",isWhite);
     if (piece.name === PIECES.PAWN) {
-      return (
-        weights["p"] + (isWhite ? pawnEvalWhite[y][x] : pawnEvalBlack[y][x])
-      );
+      return weights["p"] + (isWhite ? pawnEvalWhite[y][x] : pawnEvalBlack[y][x]);
     } else if (piece.name === PIECES.ROOK) {
-      return (
-        weights["r"] + (isWhite ? rookEvalWhite[y][x] : rookEvalBlack[y][x])
-      );
+      return weights["r"] + (isWhite ? rookEvalWhite[y][x] : rookEvalBlack[y][x]);
     } else if (piece.name === PIECES.BISHOP) {
-      return (
-        weights["b"] + (isWhite ? bishopEvalWhite[y][x] : bishopEvalBlack[y])
-      );
+      return weights["b"] + (isWhite ? bishopEvalWhite[y][x] : bishopEvalBlack[y][x]);
     } else if (piece.name === PIECES.KNIGHT) {
       return weights["n"] + knightEval[y][x];
     } else if (piece.name === PIECES.QUEEN) {
       return weights["q"] + evalQueen[y][x];
     } else if (piece.name === PIECES.KING) {
-      return (
-        weights["k"] + (isWhite ? kingEvalWhite[y][x] : kingEvalBlack[y][x])
-      );
+      return weights["k"] + (isWhite ? kingEvalWhite[y][x] : kingEvalBlack[y][x]);
     }
   };
   const absoluteValue = getAbsoluteValue(
     piece,
-    piece.color === PIECES.WHITE,
+    piece.color === COLORS.WHITE,
     x,
     y
   );
-  return piece.color === PIECES.WHITE ? absoluteValue : -absoluteValue;
+  console.log("abababa",absoluteValue);
+  return piece.color === COLORS.WHITE ? absoluteValue : -absoluteValue;
 };
 
 const evaluateBoard = (board) => {
@@ -186,25 +181,28 @@ const evaluateBoard = (board) => {
   for (let i = 0; i < 8; i++) {
     for (let j = 0; j < 8; j++) {
       totalEvaluation = totalEvaluation + getPieceValue(board[i][j], i, j);
+      // console.log(board[i][j]);
     }
   }
   return totalEvaluation;
 };
 
 const minimax = function (depth, game, alpha, beta, isMaximisingPlayer) {
+  debugger;
   if (depth === 0) {
     return -evaluateBoard(game.chessBoard);
   }
 
   var newGameMoves = game.allMoves;
+  // console.log("hihi",game);
   var bestMove;
   if (isMaximisingPlayer) {
     bestMove = -9999;
     for (var i = 0; i < newGameMoves.length; i++) {
-      const { position, move } = game.allMoves[i];
+      const { position, move } = newGameMoves[i];
       const nextChessBoard = {
         chessBoard: getNextChessBoard(position, move, game.chessBoard),
-        allMoves: game.allMoves[i],
+        allMoves: getAllMoves(COLORS.BLACK,getNextChessBoard(position, move, game.chessBoard)),
       };
       bestMove = Math.max(
         bestMove,
@@ -219,10 +217,10 @@ const minimax = function (depth, game, alpha, beta, isMaximisingPlayer) {
   } else {
     bestMove = 9999;
     for (var j = 0; j < newGameMoves.length; j++) {
-      const { position, move } = game.allMoves[j];
+      const { position, move } = newGameMoves[j];
       const nextChessBoard = {
         chessBoard: getNextChessBoard(position, move, game.chessBoard),
-        allMoves: game.allMoves[j],
+        allMoves: getAllMoves(COLORS.BLACK,getNextChessBoard(position, move, game.chessBoard)),
       };
       bestMove = Math.min(
         bestMove,
@@ -235,20 +233,27 @@ const minimax = function (depth, game, alpha, beta, isMaximisingPlayer) {
     }
     return bestMove;
   }
+  debugger;
 };
 
 const minimaxRoot = function (depth, game, isMaximisingPlayer) {
+  debugger;
   var newGameMoves = game.allMoves;
   var bestMove = -9999;
   var bestMoveFound;
+  // console.log("le",newGameMoves.length);
 
   for (var i = 0; i < newGameMoves.length; i++) {
+    // const { position, move } = newGameMoves[i];
+    // const nextChessBoard = getNextChessBoard(position, move, game.chessBoard);
+    // console.log("le",nextChessBoard);
     var newGameMove = newGameMoves[i];
-    const { position, move } = game.allMoves[i];
+    const { position, move } = newGameMove;
     const nextChessBoard = {
       chessBoard: getNextChessBoard(position, move, game.chessBoard),
-      allMoves: game.allMoves[i],
+      allMoves: getAllMoves(COLORS.BLACK,getNextChessBoard(position, move, game.chessBoard)),
     };
+    // console.log(nextChessBoard);
     var value = minimax(
       depth - 1,
       nextChessBoard,
@@ -261,11 +266,13 @@ const minimaxRoot = function (depth, game, isMaximisingPlayer) {
       bestMoveFound = newGameMove;
     }
   }
+  debugger;
   return bestMoveFound;
 };
 
 var getBestMove = function (depth, game) {
   var bestMove = minimaxRoot(depth, game, true);
+  // console.log(depth, game);
   return bestMove;
 };
 
@@ -308,10 +315,8 @@ function ChessBoard(props) {
 
   const moves = useMemo(
     () => getMoves(selectedPosition, chessBoard),
-    [selectedPosition,chessBoard]
+    [selectedPosition, chessBoard]
   );
-
-  console.log(moves);
 
   const classes = useStyles({
     isComputerRound,
@@ -333,6 +338,7 @@ function ChessBoard(props) {
     //     if (randomMove === undefined) return;
 
     //     const { position, move } = randomMove;
+    //     console.log(position,move);
 
     //     const nextChessBoard = getNextChessBoard(position, move, chessBoard);
     //     console.log("jsjsjs",chessBoard);
@@ -340,16 +346,17 @@ function ChessBoard(props) {
     //     setChessBoard(nextChessBoard);
     //   },
     //   chessBoardType === CHESSBOARD_TYPE.AUTOPLAY ? 3000 : 1000
-    // )
+    // ),
 
     debounce(
       () => {
         const allMoves = getAllMoves(playerColor, chessBoard);
-        const { position, move } = getBestMove(5, { chessBoard, allMoves });
+        console.log(allMoves);
+        const { position, move } = getBestMove(3, { chessBoard, allMoves });
         const nextChessBoard = getNextChessBoard(position, move, chessBoard);
         setChessBoard(nextChessBoard);
       },
-      chessBoardType === CHESSBOARD_TYPE.AUTOPLAY ? 3000 : 1000
+      chessBoardType === CHESSBOARD_TYPE.AUTOPLAY ? 1000 : 1000
     ),
     [chessBoard]
   );
@@ -381,7 +388,16 @@ function ChessBoard(props) {
 
     // do a computer move if it is a computer round
     isComputerRound && doComputerMove();
-  }, [chessBoard, windowIsFocused, chessBoardHistory,chessBoardType,doComputerMove,enemyColor,isComputerRound,playerColor]);
+  }, [
+    chessBoard,
+    windowIsFocused,
+    chessBoardHistory,
+    chessBoardType,
+    doComputerMove,
+    enemyColor,
+    isComputerRound,
+    playerColor,
+  ]);
 
   function handleClick({ position, clientCoords }) {
     if (clientCoords) {
